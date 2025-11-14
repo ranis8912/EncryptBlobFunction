@@ -1,0 +1,41 @@
+name: CI - build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Node (for Functions Core Tools)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Azure Functions Core Tools
+        run: npm i -g azure-functions-core-tools@4 --unsafe-perm=true
+
+      - name: Tooling versions
+        run: |
+          dotnet --info
+          func --version
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish (verification)
+        run: dotnet publish --configuration Release --no-build
